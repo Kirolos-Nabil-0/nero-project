@@ -7,9 +7,9 @@
             <v-card-text>
                 <v-form ref="form">
                     <v-text-field v-model="editedItem.name" label="الاسم"></v-text-field>
-                    <v-text-field v-model="editedItem.amount" label="الكمية"></v-text-field>
-                    <v-text-field v-model="editedItem.buyPrice" label="سعر الشراء"></v-text-field>
-                    <v-text-field v-model="editedItem.sellPrice" label="سعر البيع"></v-text-field>
+                    <v-number-input :min="0" v-model="editedItem.amount" label="الكمية"></v-number-input>
+                    <v-number-input :min="0" v-model="editedItem.buyPrice" label="سعر الشراء"></v-number-input>
+                    <v-number-input :min="0" v-model="editedItem.sellPrice" label="سعر البيع"></v-number-input>
                 </v-form>
             </v-card-text>
             <v-card-actions>

@@ -42,9 +42,9 @@ const dialog = ref(false);
 const newItem = {
     _id: null,
     name: '',
-    amount: '',
-    buyPrice: '',
-    sellPrice: ''
+    amount: 0,
+    buyPrice: 0,
+    sellPrice: 0
 };
 
 const editedItem = ref({ ...newItem });
