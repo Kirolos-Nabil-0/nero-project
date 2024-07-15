@@ -95,7 +95,7 @@ const deleteItem = async (item) => {
         });
 
         if (result.isConfirmed) {
-            await $fetch(`http://localhost:5000/api/stores/${_id}`, {
+            await $fetch(`https://nero-project.onrender.com/api/stores/${_id}`, {
                 method: 'DELETE'
             });
 
@@ -108,6 +108,9 @@ const deleteItem = async (item) => {
     }
 };
 
+function deepEqual(obj1, obj2) {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+}
 const saveItem = async (item) => {
     if (!item._id) {
         await refresh();
@@ -117,7 +120,15 @@ const saveItem = async (item) => {
 
     try {
         if (item._id) {
-            await $fetch(`http://localhost:5000/api/stores/${item._id}`, {
+            // get the old item
+            const oldItem = fetchedData.value.find(i => i._id === item._id);
+            // check if the item is the same as the old item
+            if (deepEqual(item, oldItem)) {
+                Swal.fire('تم التحديث!', 'تم تحديث المنتج بنجاح.', 'success');
+                dialog.value = false;
+                return;
+            }
+            await $fetch(`https://nero-project.onrender.com/api/stores/${item._id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -128,7 +139,7 @@ const saveItem = async (item) => {
             fetchedData.value[index] = item;
             Swal.fire('تم التحديث!', 'تم تحديث المنتج بنجاح.', 'success');
         } else {
-            const newItem = await $fetch('http://localhost:5000/api/stores', {
+            const newItem = await $fetch('https://nero-project.onrender.com/api/stores', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -151,8 +162,9 @@ const saveItem = async (item) => {
             Swal.fire('خطأ!', 'حدث خطأ أثناء حفظ المنتج.', 'error');
         }
     }
+
 };
 
 // Fetch the data and initialize it as an empty array if fetching fails
-const { data: fetchedData, refresh } = await useFetch('http://localhost:5000/api/stores');
+const { data: fetchedData, refresh } = await useFetch('https://nero-project.onrender.com/api/stores');
 </script>

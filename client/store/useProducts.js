@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-const URI = `http://localhost:5000/api/stores/`;
+const URI = `https://nero-project.onrender.com/api/stores/`;
 
 export const useProducts = defineStore("products", () => {
   const products = ref([]);
