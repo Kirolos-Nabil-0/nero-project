@@ -1,12 +1,13 @@
 <template>
-  <VAppBar class="mt-5" height="140" color="#1E3A5F">
-    <VToolbarTitle class="text-h4">
+  <VAppBar :class="$display.smAndDown ? 'mt-3' : 'mt-5'" :height="$display.smAndDown ? 100 : 140" color="#1E3A5F">
+    <VToolbarTitle class="text-h5 text-sm-h4">
       تسجيل الدخول
     </VToolbarTitle>
   </VAppBar>
 
   <v-container class="d-flex justify-center align-center" style="min-height: 80vh;">
-    <v-card class="pa-5" max-width="900" min-width="500" variant="text">
+    <v-card class="pa-4" :max-width="$display.smAndDown ? '100%' : '500px'"
+      :min-width="$display.smAndDown ? '90%' : '500px'" variant="text">
       <v-form ref="form" @submit.prevent="login" v-model="valid">
         <v-text-field label="رقم الهاتف" variant="outlined" prepend-inner-icon="mdi-phone" dense hide-details
           v-model="phone" class="mb-4" :disabled="loading" :rules="[
@@ -43,7 +44,7 @@
 import { ref } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';
-import { VAlert } from 'vuetify/components';
+import { useDisplay } from 'vuetify';
 
 const valid = ref(false);
 const form = ref(null);
@@ -55,6 +56,7 @@ const loading = ref(false);
 const errorMessages = ref([]);
 const userStore = useUserStore();
 const router = useRouter();
+const $display = useDisplay();
 
 const login = async () => {
   errorMessages.value = [];
@@ -78,6 +80,21 @@ const login = async () => {
 
 <style>
 .v-toolbar-title__placeholder {
-  overflow: visible !important
+  overflow: visible !important;
+}
+
+@media (max-width: 600px) {
+  .v-app-bar {
+    height: 100px !important;
+  }
+
+  .v-card {
+    max-width: 100% !important;
+    min-width: 90% !important;
+  }
+
+  .v-toolbar-title {
+    font-size: 20px !important;
+  }
 }
 </style>

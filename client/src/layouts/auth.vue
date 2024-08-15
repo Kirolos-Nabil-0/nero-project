@@ -1,11 +1,9 @@
 <template>
   <v-locale-provider rtl>
-
     <v-app>
       <v-main>
         <v-container class="text-center d-flex flex-column">
           <RouterView />
-
         </v-container>
       </v-main>
       <BaseFooter />
@@ -14,8 +12,4 @@
 </template>
 
 <script setup>
-
-
-
-
 </script>
