@@ -1,4 +1,4 @@
-const API_URL = `http://localhost:5000/api/stores`;
+const API_URL = `https://nero-project.onrender.com/api/stores`;
 const token =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmJhYmI1NGMzZjUxZWJjYzlkNTY5OTEiLCJpYXQiOjE3MjM1NDYyODB9.wTFcKfKxLQ6R_rPPV_6xB2ew7lleHeTzGvwrBXt0P7g";
 

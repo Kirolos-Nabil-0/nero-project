@@ -52,7 +52,7 @@ self.addEventListener("message", async (event) => {
       idxData = await openDatabaseAndGetData();
 
       // Fetch new data from the server
-      const res = await fetch("http://localhost:5000/api/stores", {
+      const res = await fetch("https://nero-project.onrender.com/api/stores", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${event.data.token}`,

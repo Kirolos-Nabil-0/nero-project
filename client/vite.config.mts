@@ -116,7 +116,7 @@ export default defineConfig({
           },
           {
             urlPattern: ({ url }) =>
-              url.origin === "http://localhost:5000/api/" &&
+              url.origin === "https://nero-project.onrender.com/api/" &&
               url.pathname.startsWith("/api/"),
 
             handler: "NetworkFirst",
