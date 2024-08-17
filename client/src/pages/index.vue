@@ -115,6 +115,23 @@ const formatDate = (date) => {
 // Handle Form Submission
 const handleSubmit = async (product) => {
   if (dialogMode.value === 'add') {
+    if (!userToken.value) {
+      return;
+    }
+    // remove spaces from the product name and lowercase it
+    const productName = product.name.toLowerCase().replace(/\s/g, '');
+    if (productsStore.productsNamesLowerCaseNoSpaces.includes(productName)) {
+      Swal.fire({
+        title: 'هذا المنتج موجود بالفعل',
+        icon: 'error',
+        showConfirmButton: false,
+        timer: 1500,
+        background: '#D9D9D9',
+        color: 'white',
+      });
+      return;
+    }
+
     const res = await addProduct(product, userToken.value);
     if (res) {
       productsStore.addProduct(res);

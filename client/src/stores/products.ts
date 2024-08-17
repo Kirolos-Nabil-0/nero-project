@@ -37,6 +37,11 @@ export const useProductsStore = defineStore("products", () => {
       )
     );
   }
+  const productsNamesLowerCaseNoSpaces = computed(() =>
+    Array.from(products.value).map((product) =>
+      product.name.toLowerCase().replace(/\s/g, "")
+    )
+  );
 
   return {
     products,
@@ -44,5 +49,6 @@ export const useProductsStore = defineStore("products", () => {
     addProduct,
     removeProduct,
     updateProduct,
+    productsNamesLowerCaseNoSpaces,
   };
 });
