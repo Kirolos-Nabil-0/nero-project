@@ -1,11 +1,11 @@
 <template>
-  <div class="d-flex align-center rtl-container" dir="rtl">
+  <div class="d-flex align-center rtl-container responsive-container" dir="rtl">
     <!-- Search Field -->
     <v-text-field v-model="search" label="ابحث من هنا..." variant="outlined" class="search-field align-self-center"
       prepend-inner-icon="mdi-magnify" single-line rounded></v-text-field>
 
     <!-- Add Product Button -->
-    <v-btn color="#1E3A5F" size="x-large" @click="openDialog('add')" class="add-product-btn align-self-baseline" dark>
+    <v-btn color="#1E3A5F" size="large" @click="openDialog('add')" class="add-product-btn align-self-baseline" dark>
       اضافة منتج جديد
     </v-btn>
 
@@ -34,7 +34,6 @@
     </v-data-table>
   </v-card>
 </template>
-
 <script setup>
 import { ref, watch, computed } from 'vue';
 import Fuse from 'fuse.js';
@@ -216,30 +215,42 @@ const deleteProduct = (item) => {
   });
 };
 </script>
-
 <style scoped>
 /* General Styles */
 .rtl-container {
   direction: rtl;
 }
 
+.responsive-container {
+  flex-wrap: wrap;
+  width: 100%;
+}
+
 /* Search Field */
 .search-field {
-  width: 300px;
-  margin-left: 16px;
-  margin-right: 16px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 /* Add Product Button */
 .add-product-btn {
   background-color: #243b55;
   font-weight: bold;
-  padding: 10px 40px;
+  padding: 10px 20px;
   font-size: 1.1rem;
+  width: 100%;
 }
 
-.v-btn--dark {
-  color: white;
+@media (min-width: 600px) {
+  .search-field {
+    width: calc(70% - 16px);
+    margin-right: 16px;
+    margin-bottom: 0;
+  }
+
+  .add-product-btn {
+    width: 30%;
+  }
 }
 
 /* Card and Table Styling */
