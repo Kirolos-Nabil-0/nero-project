@@ -21,7 +21,7 @@
           <VTextField v-model="amount" label="الكمية المتاحة" append-inner-icon="unit_icon" class="input-field" outlined
             dense :rules="[
               v => !!v || 'هذا الحقل مطلوب',
-              v => parseFloat(v) > -1 || 'يجب أن يكون رقمًا موجبًا  او صفرا '
+              v => parseFloat(v) > -1 || ' يجب أن يكون رقمًا موجبًا او صفر'
             ]" required />
           <div class="d-flex justify-space-between mt-4">
             <VBtn @click="closeDialog" color="#4A4A4A" class="cancel-btn">
@@ -111,6 +111,11 @@ watch(
 // Close dialog
 const closeDialog = () => {
   localDialog.value = false;
+  name.value = '';
+  buyPrice.value = '';
+  sellPrice.value = '';
+  amount.value = '';
+
 };
 
 // Submit form
@@ -127,6 +132,12 @@ const submitForm = () => {
 
   emit('submit', { ...formData, mode: props.mode, id: productId });
   closeDialog();
+  // clear form fields
+  name.value = '';
+  buyPrice.value = '';
+  sellPrice.value = '';
+  amount.value = '';
+
 };
 
 </script>

@@ -1,46 +1,26 @@
 <template>
   <div class="d-flex align-center rtl-container responsive-container" dir="rtl">
-    <!-- Search Field -->
-    <v-text-field v-model="search" label="ابحث من هنا..." variant="outlined" class="search-field align-self-center"
-      prepend-inner-icon="mdi-magnify" single-line rounded></v-text-field>
-
-    <!-- Add Product Button -->
-    <v-btn color="#1E3A5F" size="large" @click="openDialog('add')" class="add-product-btn align-self-baseline" dark>
-      اضافة منتج جديد
-    </v-btn>
-
-    <!-- Product Dialog -->
+    <ProductSearch v-model="search" />
+    <AddProductButton @open-dialog="openDialog" />
     <ProductDialog :dialog="dialog" :mode="dialogMode" :product="selectedProduct" @update:dialog="updateDialog"
       @submit="handleSubmit" />
   </div>
 
-  <!-- Data Table -->
-  <v-card style="margin-top: 3rem" class="rounded-card">
-    <v-data-table :items="filteredProducts" :headers="headers" :items-per-page="5" :loading="loading"
-      :loading-text="loadingText" :no-data-text="noDataText" class="elevation-1 rounded-table">
-      <template #item.edit="{ item }">
-        <v-icon color="primary" @click="editProduct(item)" title="Edit">
-          mdi-pencil
-        </v-icon>
-      </template>
-      <template #item.delete="{ item }">
-        <v-icon color="red" @click="deleteProduct(item)" title="Delete">
-          mdi-delete
-        </v-icon>
-      </template>
-      <template #item.updatedAt="{ item }">
-        {{ formatDate(item.updatedAt) }}
-      </template>
-    </v-data-table>
-  </v-card>
+  <!-- Dynamic Component Rendering -->
+  <component :is="currentComponent" :filteredProducts="filteredProducts" :headers="headers" :loading="loading"
+    loadingText="loadingText" noDataText="noDataText" @edit-product="editProduct" @delete-product="deleteProduct" />
 </template>
+
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue';
+
 import Fuse from 'fuse.js';
-import { useProductsStore } from '@/stores/products';
 import Swal from 'sweetalert2';
+import { useProductsStore } from '@/stores/products';
 import { addProduct, updateProduct } from '@/prductsApi';
 import { userToken } from '@/main';
+import ProductCards from '@/components/ProductCards.vue';
+import ProductTable from '@/components/ProductTable.vue';
 
 const headers = [
   { title: 'اسم المنتج', value: 'name', align: 'center' },
@@ -48,137 +28,93 @@ const headers = [
   { title: 'سعر البيع', value: 'sellPrice', align: 'end', sortable: true },
   { title: 'الكمية', value: 'amount', align: 'end', sortable: true },
   { title: 'تاريخ اخر تعديل', value: 'updatedAt', align: 'center' },
+  { title: "اخر من قام بالتعديل", value: "lastEditor.username", align: "center" },
   { title: 'تعديل', value: 'edit', align: 'center', sortable: false },
   { title: 'حذف', value: 'delete', align: 'center', sortable: false },
 ];
 
-// Store and State Initialization
 const productsStore = useProductsStore();
 const search = ref('');
 const loading = ref(false);
 const dialog = ref(false);
-const dialogMode = ref('add'); // New: to track the mode (add/edit)
-const selectedProduct = ref(null); // New: to hold the selected product for editing
+const dialogMode = ref('add');
+const selectedProduct = ref(null);
 
-// Computed property to convert Set to an array
-const products = computed(() => Array.from(productsStore.products));
+const products = computed(() => Array.from(productsStore.products).map((product) => {
+  return {
+    ...product,
+    icon: product.amount < 5 && product.amount !== 0 ? 'mdi-alert' : product.amount === 0 ? 'mdi-alert-circle' : '',
+    iconColor: product.amount < 5 && product.amount !== 0 ? 'yellow' : product.amount === 0 ? 'red' : '',
+  }
+}))
 
-// Fuse.js for Fuzzy Searching
-const fuse = new Fuse(products.value, {
-  keys: ['name', 'buyPrice', 'sellPrice', 'amount'],
-  includeScore: true,
-  threshold: 0.3,
+const fuse = ref(null);
+
+const initFuse = () => {
+  fuse.value = new Fuse(products.value, {
+    keys: ['name', 'buyPrice', 'sellPrice', 'amount'],
+    includeScore: true,
+    threshold: 0.3,
+  });
+};
+
+watch(products, () => {
+  initFuse();
 });
 
-// Computed property to handle filtered products
 const filteredProducts = computed(() => {
-  if (search.value.trim() === '') {
-    return products.value;
-  } else {
-    const results = fuse.search(search.value.trim());
-    return results.map((result) => result.item);
-  }
+  if (!fuse.value) initFuse();
+  return search.value.trim()
+    ? fuse.value.search(search.value.trim()).map(result => result.item)
+    : products.value;
 });
 
-// Watchers
-watch(
-  () => productsStore.products,
-  (newVal) => {
-    fuse.setCollection(Array.from(newVal));
-  }
-);
-
-watch(search, (newVal) => {
-  fuse.setCollection(products.value);
-});
-
-// Methods
-
-// Open Dialog
 const openDialog = (mode, product = null) => {
   dialogMode.value = mode;
   selectedProduct.value = product;
   dialog.value = true;
 };
 
-// Update Dialog
 const updateDialog = (value) => {
   dialog.value = value;
 };
 
-// Format Date
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString();
-};
-
-// Handle Form Submission
 const handleSubmit = async (product) => {
-  if (dialogMode.value === 'add') {
-    if (!userToken.value) {
-      return;
-    }
-    // remove spaces from the product name and lowercase it
+  try {
+    loading.value = true;
     const productName = product.name.toLowerCase().replace(/\s/g, '');
-    if (productsStore.productsNamesLowerCaseNoSpaces.includes(productName)) {
-      Swal.fire({
-        title: 'هذا المنتج موجود بالفعل',
-        icon: 'error',
-        showConfirmButton: false,
-        timer: 1500,
-        background: '#D9D9D9',
-        color: 'white',
-      });
-      return;
-    }
 
-    const res = await addProduct(product, userToken.value);
-    if (res) {
-      productsStore.addProduct(res);
-      Swal.fire({
-        title: 'تمت الاضافة بنجاح',
-        icon: 'success',
-        showConfirmButton: false,
-        timer: 1500,
-        background: '#D9D9D9',
-        color: 'white',
-      });
+    if (dialogMode.value === 'add') {
+      if (productsStore.productsNamesLowerCaseNoSpaces.includes(productName)) {
+        showAlert('هذا المنتج موجود بالفعل', 'error');
+        return;
+      }
+
+      const res = await addProduct(product, userToken.value);
+      if (res) productsStore.addProduct(res);
+      showAlert('تمت الاضافة بنجاح');
+    } else if (dialogMode.value === 'edit') {
+      const res = await updateProduct(product.id, product, userToken.value);
+      if (res) productsStore.updateProduct(res);
+      showAlert('تم التعديل بنجاح');
     }
-  } else if (dialogMode.value === 'edit') {
-    const res = await updateProduct(product.id, product, userToken.value);
-    if (res) {
-      productsStore.updateProduct(res);
-      Swal.fire({
-        title: 'تم التعديل بنجاح',
-        icon: 'success',
-        showConfirmButton: false,
-        timer: 1500,
-        background: '#D9D9D9',
-        color: 'white',
-      });
-    }
+  } catch (error) {
+    showAlert('حدث خطأ أثناء العملية', 'error');
+    console.error(error);
+  } finally {
+    loading.value = false;
+    dialog.value = false;
   }
-
-  dialog.value = false;
 };
 
-// Edit Product
-const editProduct = (item) => {
-  selectedProduct.value = item;
-  openDialog('edit', item);
-};
+const editProduct = (item) => openDialog('edit', item);
 
-// Delete Product
 const deleteProduct = (item) => {
   Swal.fire({
-    title: `
-      <span style="color: #1E3A5F; font-size: 1.5rem;">
-      ${item.name} هل انت متأكد من ازالة هذا المنتج؟
-      </span>
-    `.trim(),
+    title: `${item.name} هل انت متأكد من ازالة هذا المنتج؟`,
     imageUrl: '/alert-icon.png',
     imageWidth: 70,
     imageHeight: 70,
-    imageAlt: 'Warning Icon',
     showCancelButton: true,
     confirmButtonColor: '#1E3A5F',
     cancelButtonColor: '#4A4A4A',
@@ -187,36 +123,52 @@ const deleteProduct = (item) => {
     textDirection: 'rtl',
     background: '#D9D9D9',
     color: 'white',
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      productsStore.removeProduct(item._id)
-        .then(() => {
-          Swal.fire({
-            title: 'تم الحذف بنجاح',
-            icon: 'success',
-            showConfirmButton: false,
-            timer: 1500,
-            background: '#D9D9D9',
-            color: 'white',
-          });
-        })
-        .catch((error) => {
-          Swal.fire({
-            title: 'حدث خطأ اثناء الحذف',
-            icon: 'error',
-            showConfirmButton: false,
-            timer: 1500,
-            background: '#D9D9D9',
-            color: 'white',
-          });
-          console.error(error);
-        });
+      try {
+        await productsStore.removeProduct(item._id);
+        showAlert('تم الحذف بنجاح');
+      } catch (error) {
+        showAlert('حدث خطأ اثناء الحذف', 'error');
+        console.error(error);
+      }
     }
   });
 };
+
+const isMobile = ref(window.innerWidth < 768);
+
+const currentComponent = computed(() => {
+  console.log('Is mobile:', isMobile.value);
+  return isMobile.value ? ProductCards : ProductTable;
+});
+
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+  console.log('Initial component:', currentComponent.value.name);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+});
+
+function showAlert(text, icon = 'success') {
+  Swal.fire({
+    text,
+    icon,
+    confirmButtonColor: '#1E3A5F',
+    background: '#D9D9D9',
+    color: 'white',
+  });
+}
+
 </script>
+
 <style scoped>
-/* General Styles */
 .rtl-container {
   direction: rtl;
 }
@@ -224,38 +176,6 @@ const deleteProduct = (item) => {
 .responsive-container {
   flex-wrap: wrap;
   width: 100%;
-}
-
-/* Search Field */
-.search-field {
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-/* Add Product Button */
-.add-product-btn {
-  background-color: #243b55;
-  font-weight: bold;
-  padding: 10px 20px;
-  font-size: 1.1rem;
-  width: 100%;
-}
-
-@media (min-width: 600px) {
-  .search-field {
-    width: calc(70% - 16px);
-    margin-right: 16px;
-    margin-bottom: 0;
-  }
-
-  .add-product-btn {
-    width: 30%;
-  }
-}
-
-/* Card and Table Styling */
-.rounded-card,
-.rounded-table {
-  border-radius: 8px;
+  gap: 1rem;
 }
 </style>

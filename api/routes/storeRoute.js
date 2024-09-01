@@ -4,13 +4,14 @@ import lodash from "lodash";
 import { Store } from "../models/storeModel.js";
 import { validateRequest } from "../middlewares/validateRequest.js";
 import auth from "../middlewares/auth.js"; // Import your auth middleware
+import { User } from "../models/userModel.js";
 
 const router = express.Router();
 
 // Get all stores (authentication required)
 router.get("/", auth, async (req, res) => {
   try {
-    const stores = await Store.find();
+    const stores = await Store.find().populate("lastEditor", "username");
     res.send(stores);
   } catch (err) {
     res.status(500).send(err);
@@ -20,7 +21,10 @@ router.get("/", auth, async (req, res) => {
 // Get a store by ID (authentication required)
 router.get("/:id", auth, async (req, res) => {
   try {
-    const store = await Store.findOne({ _id: req.params.id });
+    const store = await Store.findOne({ _id: req.params.id }).populate(
+      "lastEditor",
+      "username"
+    );
     if (!store) {
       return res.status(404).send({ error: "Store not found" });
     }
@@ -56,7 +60,9 @@ router.post(
   async (req, res) => {
     try {
       const store = new Store(req.body);
+      store.lastEditor = req.user._id;
       await store.save();
+
       res.send(store);
     } catch (err) {
       res.status(500).send(err);
@@ -94,7 +100,28 @@ router.patch(
       if (!store) {
         return res.status(404).send({ error: "Store not found" });
       }
-      lodash.assign(store, req.body);
+
+      // Push current state to history before updating
+      store.history.push({
+        amount: store.amount,
+        buyPrice: store.buyPrice,
+        sellPrice: store.sellPrice,
+        editor: store.lastEditor,
+        date: store.updatedAt,
+      });
+
+      // Update store with new values
+      if (req.body.name !== undefined) store.name = req.body.name;
+      if (req.body.amount !== undefined) store.amount = req.body.amount;
+      if (req.body.buyPrice !== undefined) store.buyPrice = req.body.buyPrice;
+      if (req.body.sellPrice !== undefined)
+        store.sellPrice = req.body.sellPrice;
+
+      // Update the lastEditor and updatedAt fields
+      store.lastEditor = req.user._id;
+      store.updatedAt = new Date();
+
+      // Save the updated store
       await store.save();
       res.send(store);
     } catch (err) {
@@ -119,6 +146,12 @@ router.patch(
       if (!store) {
         return res.status(404).send({ error: "Store not found" });
       }
+      store.history.push({
+        amount: store.amount,
+        buyPrice: store.buyPrice,
+        sellPrice: store.sellPrice,
+        editor: store.lastEditor,
+      });
       store.amount = req.body.amount;
       await store.save();
       res.send(store);

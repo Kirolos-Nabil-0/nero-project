@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongooseAutopopulate from "mongoose-autopopulate";
 
 const storeSchema = new mongoose.Schema({
   name: {
@@ -7,6 +8,11 @@ const storeSchema = new mongoose.Schema({
     unique: true,
     minlength: [3, "Store name must be at least 3 characters long"],
     maxlength: [100, "Store name must be less than 100 characters long"],
+  },
+  lastEditor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: [true, "Last editor is required"],
   },
   amount: {
     type: Number,
@@ -21,8 +27,34 @@ const storeSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  history: [
+    {
+      amount: {
+        type: Number,
+        required: true,
+      },
+      buyPrice: {
+        type: Number,
+        required: true,
+      },
+      sellPrice: {
+        type: Number,
+        required: true,
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      editor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        autopopulate: true,
+      },
+    },
+  ],
 });
 
 storeSchema.set("timestamps", true);
+storeSchema.plugin(mongooseAutopopulate);
 
-export const Store = mongoose.model("store", storeSchema);
+export const Store = mongoose.model("Store", storeSchema);

@@ -5,7 +5,7 @@
       <p>Where innovation meets opportunities</p>
     </div>
     <div>
-      <p>Created By Heda & Kiro </p>
+      <p>Created By Heda </p>
     </div>
 
   </v-footer>

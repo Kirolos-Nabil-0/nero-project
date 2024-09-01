@@ -11,12 +11,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: /^\+?[1-9]\d{1,14}$/, // This regex pattern ensures the phone number follows the E.164 format
   },
   password: {
     type: String,
     required: true,
     minlength: 6,
+  },
+  role: {
+    type: String,
+    default: "admin",
   },
   tokens: [
     {
