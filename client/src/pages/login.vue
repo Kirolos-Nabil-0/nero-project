@@ -9,11 +9,10 @@
     <v-card class="pa-4" :max-width="$display.smAndDown ? '100%' : '500px'"
       :min-width="$display.smAndDown ? '90%' : '500px'" variant="text">
       <v-form ref="form" @submit.prevent="login" v-model="valid">
-        <v-text-field label="رقم الهاتف" variant="outlined" prepend-inner-icon="mdi-phone" dense hide-details
-          v-model="phone" class="mb-4" :disabled="loading" :rules="[
+        <v-text-field label="رقم الهاتف" variant="outlined" prepend-inner-icon="mdi-phone" dense v-model="phone"
+          class="mb-4" :disabled="loading" :rules="[
             (v) => !!v || 'هذا الحقل مطلوب',
-            (v) => (v && v.length === 10) || 'رقم الهاتف يجب ان يكون 10 ارقام',
-            (v) => (v && v[0] === '0' && v[1] === '5') || 'رقم الهاتف يجب ان يبدأ بـ 05'
+            (v) => (v && v.length === 11) || 'رقم الهاتف يجب ان يكون 10 ارقام',
           ]" full-width required>
         </v-text-field>
 
@@ -21,9 +20,8 @@
           (v) => !!v || 'هذا الحقل مطلوب',
           (v) => (v && v.length >= 6) || 'كلمة المرور يجب ان تكون 6 احرف على الاقل'
         ]" label="كلمة المرور" prepend-inner-icon="mdi-lock" variant="outlined"
-          :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
-          @click:append="showPassword = !showPassword" dense hide-details v-model="password" :disabled="loading"
-          required full-width>
+          :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" :type="showPassword ? 'text' : 'password'"
+          @click:append="showPassword = !showPassword" dense v-model="password" :disabled="loading" required full-width>
         </v-text-field>
 
         <v-btn class="mt-4" @click="login" :loading="loading" color="#1E3A5F" dark full-width>

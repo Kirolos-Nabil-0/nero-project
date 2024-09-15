@@ -7,8 +7,12 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddProductButton: typeof import('./components/AddProductButton.vue')['default']
     BaseFooter: typeof import('./components/BaseFooter.vue')['default']
+    ProductCards: typeof import('./components/ProductCards.vue')['default']
     ProductDialog: typeof import('./components/ProductDialog.vue')['default']
+    ProductSearch: typeof import('./components/ProductSearch.vue')['default']
+    ProductTable: typeof import('./components/ProductTable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

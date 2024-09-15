@@ -47,8 +47,8 @@ webWorker.onmessage = async (event) => {
   }
 };
 
-// Define fetch interval (15 seconds)
-const FETCH_INTERVAL = 15000;
+// Define fetch interval (5 seconds)
+const FETCH_INTERVAL = 5000;
 
 // Send the initial message to the Web Worker to fetch products data
 if (userToken.value) {
@@ -101,3 +101,12 @@ async function initializeData() {
 
 // Initialize the data
 initializeData();
+const clickSound = new Audio("/mouse-click-sound-233951.mp3");
+
+document.addEventListener("DOMContentLoaded", function () {
+  const body = document.querySelector("body");
+
+  body?.addEventListener("click", function (event) {
+    clickSound.play();
+  });
+});
